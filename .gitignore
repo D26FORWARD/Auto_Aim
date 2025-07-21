@@ -1,0 +1,49 @@
+# ROS 2 Colcon ignore files
+build/
+install/
+log/
+
+# IDE specific files
+.vscode/        # Visual Studio Code 工作区设置
+.idea/          # IntelliJ IDEA / CLion 等 IDE 设置
+*.bak           # 备份文件
+
+# C++ Compilation artifacts
+*.o             # Object files
+*.lo
+*.la
+*.so            # Shared libraries
+*.dll           # Windows DLLs
+*.dylib         # macOS dynamic libraries
+core            # Core dumps
+
+# Python compilation artifacts
+*.pyc
+__pycache__/
+
+# Archive files
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.rar
+*.7z
+
+# OS generated files
+.DS_Store       # macOS specific
+.Trash/         # Linux trash (though usually in user home)
+thumbs.db       # Windows thumbnail cache
+
+# Custom logs or runtime specific directories from your project
+MvSdkLog/       # 你列出的 SDK 日志目录
+
+# Temporary files created by editors
+*~              # Emacs backup files
+#* # Vim swap files (can be too broad, be careful if enabling)
+
+# Rosbag files (if you create them in the workspace root)
+*.bag
+*.bag.active
+
+# Other potential temporary or generated files
+# If you find other files/directories generated during runtime or build that shouldn't be tracked, add them here.
