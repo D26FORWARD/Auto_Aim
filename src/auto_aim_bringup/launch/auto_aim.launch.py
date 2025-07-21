@@ -16,6 +16,12 @@ def generate_launch_description():
     default_params = os.path.join(
         get_package_share_directory('auto_aim_bringup'), 'config', 'default.yaml')
 
+    processor_config_path = os.path.join(
+        get_package_share_directory('auto_aim_processor'),
+        'config',
+        'processor_params.yaml'
+    )
+
     return LaunchDescription([
         # 摄像头参数声明
         DeclareLaunchArgument(name='camera_info_url', default_value=hik_camera_info_url),
@@ -33,24 +39,19 @@ def generate_launch_description():
             }]
         ),
 
-        # 装甲板检测节点
+        # 合并后的处理节点
         Node(
-            package='armor_detector',
-            executable='armor_detector_node',
-            # output='screen',
-            emulate_tty=True,
-            parameters=[default_params],
-            ros_arguments=['--log-level', 'armor_detector:=DEBUG']
-        ),
-
-        # ✅ 装甲板追踪节点（使用 armor_tracker 替换 armor_processor）
-        Node(
-            package='armor_tracker',
-            executable='armor_tracker_node',
+            package='auto_aim_processor',
+            executable='combined_processor_node',
+            name='combined_processor',
             output='screen',
             emulate_tty=True,
-            parameters=[default_params],
-            ros_arguments=['--log-level', 'armor_tracker:=DEBUG']
+            parameters=[default_params, processor_config_path],
+            ros_arguments=['--log-level', 'combined_processor:=DEBUG'],
+            remappings=[
+                ('/image_raw', '/hik_camera/image'),
+                ('/tracker/target', '/fire_control/target')
+            ]
         ),
 
         # 火控节点
@@ -85,4 +86,3 @@ def generate_launch_description():
         ),
 
     ])
-
