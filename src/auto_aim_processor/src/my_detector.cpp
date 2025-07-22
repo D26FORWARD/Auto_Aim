@@ -1,4 +1,4 @@
-#include "auto_aim_processor/my_detector.hpp"
+#include "my_detector.hpp"
 
 #include <algorithm>
 #include <iostream>

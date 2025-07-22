@@ -1,19 +1,25 @@
-#include "auto_aim_processor/processor_node.hpp"
+#include "processor_node.hpp"
 
 #include <cv_bridge/cv_bridge.h>
 #include <rclcpp/rclcpp.hpp>
-#include <rclcpp_components/register_node_macro.hpp>
+// 移除了 #include <rclcpp_components/register_node_macro.hpp>，因为不再需要它
 #include <sensor_msgs/image_encodings.hpp>
 
 namespace auto_aim_processor
 {
+
+// 函数定义保持不变
+double getYawFromRotationMatrix(const Eigen::Matrix3d & R)
+{
+  return std::atan2(-R(2, 0), R(0, 0));
+}
 
 ProcessorNode::ProcessorNode(const rclcpp::NodeOptions & options)
 : Node("auto_aim_processor", options)
 {
   RCLCPP_INFO(this->get_logger(), "Starting ProcessorNode!");
 
-  // TODO(jules): Make the model path a parameter
+  // 构造函数的其他部分保持不变...
   detector_ = std::make_unique<MyDetector>("/home/changgeng/Auto_Aim_Developing/Models/2023_4_9_hj_num_1.onnx");
   tracker_ = std::make_unique<Tracker>();
 
@@ -26,6 +32,7 @@ ProcessorNode::ProcessorNode(const rclcpp::NodeOptions & options)
 
 void ProcessorNode::image_callback(const sensor_msgs::msg::Image::SharedPtr msg)
 {
+  // image_callback 的内容保持不变...
   auto start_time = this->now();
 
   cv_bridge::CvImagePtr cv_ptr;
@@ -49,7 +56,6 @@ void ProcessorNode::image_callback(const sensor_msgs::msg::Image::SharedPtr msg)
     auto_aim_interfaces::msg::Armor armor_msg;
     armor_msg.type = armor.Type;
     armor_msg.number = armor.id;
-    // TODO(jules): Fill in the rest of the armor message
     armors_msg.armors.push_back(armor_msg);
   }
   armors_pub_->publish(armors_msg);
@@ -57,7 +63,7 @@ void ProcessorNode::image_callback(const sensor_msgs::msg::Image::SharedPtr msg)
   // 2. 追踪器
   std::vector<TrackerArmor> tracker_armors;
   for (const auto & armor : armors) {
-    if (armor.Position.norm() > 0) {  // 只处理成功解算的装甲板
+    if (armor.Position.norm() > 0) {
       TrackerArmor ta;
       ta.Type = armor.Type;
       ta.Position = armor.Position;
@@ -73,8 +79,8 @@ void ProcessorNode::image_callback(const sensor_msgs::msg::Image::SharedPtr msg)
   if (tracker_->isInitialized()) {
     auto_aim_interfaces::msg::Target target_msg;
     target_msg.header.stamp = this->now();
-    target_msg.header.frame_id = "odom";  // TODO(jules): Make this a parameter
-    target_msg.id = 0;                    // TODO(jules): Get the target ID from the tracker
+    target_msg.header.frame_id = "odom";
+    target_msg.id = "0"; 
     Eigen::Vector3d target_position = tracker_->predictArmorPosition("long", 100);
     target_msg.position.x = target_position.x();
     target_msg.position.y = target_position.y();
@@ -92,11 +98,18 @@ void ProcessorNode::image_callback(const sensor_msgs::msg::Image::SharedPtr msg)
   }
 }
 
-double getYawFromRotationMatrix(const Eigen::Matrix3d & R)
-{
-  return std::atan2(-R(2, 0), R(0, 0));
-}
-
 }  // namespace auto_aim_processor
 
-RCLCPP_COMPONENTS_REGISTER_NODE(auto_aim_processor::ProcessorNode)
+
+// 添加了标准的 main 函数作为程序入口
+int main(int argc, char * argv[])
+{
+  rclcpp::init(argc, argv);
+  auto options = rclcpp::NodeOptions();
+  rclcpp::spin(std::make_shared<auto_aim_processor::ProcessorNode>(options));
+  rclcpp::shutdown();
+  return 0;
+}
+
+// 移除了下面的宏
+// RCLCPP_COMPONENTS_REGISTER_NODE(auto_aim_processor::ProcessorNode)
